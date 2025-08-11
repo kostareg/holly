@@ -39,7 +39,7 @@
 		"typescript-eslint": "^8.39.0",
 		"vite": "^7.1.0"
 	},
-  "overrides": {
-    "react-is": "^19.0.0-rc-69d4b800-20241021"
-  }
+	"overrides": {
+		"react-is": "^19.1.1"
+	}
 }
