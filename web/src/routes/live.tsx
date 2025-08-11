@@ -1,7 +1,7 @@
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 
 function Live() {
-  return <Button>Hello, world!</Button>;
+	return <Button>Hello, world!</Button>;
 }
 
-export default Live
+export default Live;

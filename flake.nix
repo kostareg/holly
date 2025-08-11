@@ -75,6 +75,7 @@
           pkgs.uv
 
           pkgs.bun
+          pkgs.biome
         ];
         env =
           {
