@@ -19,5 +19,4 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
-    "ruff>=0.6.7",
 ]

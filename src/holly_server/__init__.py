@@ -7,21 +7,21 @@ import random
 
 playing = False
 examplesample = {
-        "name": "XXX",
-        "uv": 100,
-        "pv": 200,
-        "amt": 400,
+    "name": "XXX",
+    "uv": 100,
+    "pv": 200,
+    "amt": 400,
 }
 somedata = collections.deque([examplesample] * 100, maxlen=100)
 
+
 async def send_dump(websocket):
-    msg = {
-        "playing": playing,
-        "some_data": list(somedata)
-    }
+    msg = {"playing": playing, "some_data": list(somedata)}
     await websocket.send(json.dumps(msg))
 
+
 clients = set()
+
 
 async def handler(websocket):
     global playing
@@ -37,6 +37,7 @@ async def handler(websocket):
     finally:
         clients.remove(websocket)
 
+
 async def periodic_sender():
     while True:
         if playing:
@@ -51,11 +52,13 @@ async def periodic_sender():
         # todo: allow user to modify step time
         await asyncio.sleep(0.05)
 
+
 async def main1():
     print("server started")
     asyncio.create_task(periodic_sender())
     async with websockets.serve(handler, "localhost", 65135):
         await asyncio.Future()
+
 
 def main():
     asyncio.run(main1())
