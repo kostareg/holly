@@ -7,15 +7,21 @@ import tensorflow as tf
 from holly_simulator import VectorizedGeometricBrownianMotion
 
 size = 100
-motion = VectorizedGeometricBrownianMotion(size, 100.0, 0.04, 0.18, 1 / 252)
+dt = 1 / 252
+motion = VectorizedGeometricBrownianMotion(size, 100.0, 0.04, 0.18, dt)
 time = 0
+T_years = 2
 
 playing = False
 examplesample = collections.deque([{}] * 100, maxlen=100)
 
 
 async def send_dump(websocket):
-    msg = {"playing": playing, "gbm_paths": list(examplesample)}
+    msg = {
+        "playing": playing,
+        "gbm_paths": list(examplesample),
+        "tau": T_years - time * dt,
+    }
     await websocket.send(json.dumps(msg))
 
 
@@ -34,9 +40,7 @@ async def handler(websocket):
             elif data.get("action") == "pause":
                 playing = False
             elif data.get("action") == "reset":
-                motion = VectorizedGeometricBrownianMotion(
-                    size, 100.0, 0.04, 0.18, 1 / 252
-                )
+                motion = VectorizedGeometricBrownianMotion(size, 100.0, 0.04, 0.18, dt)
                 examplesample = collections.deque(
                     [{}] * 100,
                     maxlen=100,

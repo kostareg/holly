@@ -11,28 +11,13 @@ import type { LiveState } from "@/routes/live/live-state";
 import Websocket from "@/routes/live/websocket";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-const config = {
-  time: {
-    label: "Time",
-    icon: Sun,
-    color: "var(--color-yellow-500)",
-  },
-  pv: {
-    label: "PV",
-    icon: Moon,
-    color: "var(--color-red-500)",
-  },
-  amt: {
-    label: "AMT",
-    icon: ShieldPlus,
-    color: "var(--color-blue-500)",
-  },
-} satisfies ChartConfig;
+const config = {} satisfies ChartConfig;
 
 function Live() {
   const [state, setState] = useState<LiveState>({
     playing: false,
     gbm_paths: [],
+    tau: null,
   });
 
   // reshape: [{ time, p0, p1, ... }]
@@ -47,6 +32,31 @@ function Live() {
     <>
       <Websocket setState={setState} />
       <div className="grid grid-cols-3 gap-4 p-4">
+        <Card className="col-span-3">
+          <CardHeader>
+            <CardTitle>Details</CardTitle>
+            <CardDescription>General details about the simulation configuration.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2">
+            <div>
+              Static parameters:
+              <ul className="list-inside list-disc">
+                <li>Time per step: 0.05 seconds</li>
+                <li>dt (step size): 1/252 years</li>
+                <li>μ (drift rate, annualized): 4%</li>
+                <li>σ (stddev volatility, annualized): 18%</li>
+                <li>T (initial time until maturity): 2 years</li>
+              </ul>
+            </div>
+            <div>
+              Dynamic parameters:
+              <ul className="list-inside list-disc">
+                <li>t (current time): {state.gbm_paths.at(-1)?.time || "unknown"} steps</li>
+                <li>τ (time until maturity): {state.tau?.toFixed(2) || "unknown"} years</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
         <Card className="size-full">
           <CardHeader>
             <CardTitle>Geometric Brownian Motion Simulation</CardTitle>
@@ -58,7 +68,6 @@ function Live() {
                 {[...new Array(seriesCount).keys()].map((_, i) => (
                   <Line
                     dataKey={`p${i}`}
-                    stroke="var(--color-pv)"
                     name={`Simulation ${i}`}
                     dot={false}
                     isAnimationActive={false}
