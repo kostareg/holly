@@ -4,23 +4,29 @@ import websockets
 import collections
 import tensorflow as tf
 
-from holly_simulator import VectorizedGeometricBrownianMotion
+from holly_simulator import VectorizedGeometricBrownianMotion, BlackScholes
 
 size = 100
 dt = 1 / 252
-motion = VectorizedGeometricBrownianMotion(size, 100.0, 0.04, 0.18, dt)
+mu = 0.04
+sigma = 0.18
+K = 100
+r = 0.035
+motion = VectorizedGeometricBrownianMotion(size, 100.0, mu, sigma, dt)
 time = 0
 T_years = 2
 
 playing = False
-examplesample = collections.deque([{}] * 100, maxlen=100)
+gbm_paths = collections.deque([{}] * 100, maxlen=100)
+delta = collections.deque([] * 100, maxlen=100)
 
 
 async def send_dump(websocket):
     msg = {
         "playing": playing,
-        "gbm_paths": list(examplesample),
         "tau": T_years - time * dt,
+        "gbm_paths": list(gbm_paths),
+        "delta": list(delta),
     }
     await websocket.send(json.dumps(msg))
 
@@ -29,7 +35,7 @@ clients = set()
 
 
 async def handler(websocket):
-    global playing, motion, time, examplesample
+    global playing, motion, time, gbm_paths, delta
     clients.add(websocket)
     await send_dump(websocket)
     try:
@@ -41,10 +47,11 @@ async def handler(websocket):
                 playing = False
             elif data.get("action") == "reset":
                 motion = VectorizedGeometricBrownianMotion(size, 100.0, 0.04, 0.18, dt)
-                examplesample = collections.deque(
+                gbm_paths = collections.deque(
                     [{}] * 100,
                     maxlen=100,
                 )
+                delta = collections.deque([] * 100, maxlen=100)
                 time = 0
             await send_dump(websocket)
     finally:
@@ -52,19 +59,24 @@ async def handler(websocket):
 
 
 async def periodic_sender():
-    global time
+    global time, delta
     while True:
         if playing:
             # modify some_data, e.g. take a step here
             time += 1
             motion.step()
 
-            examplesample.append(
+            gbm_paths.append(
                 {
                     "time": time,
                     "data": tf.reshape(tf.abs(motion.s), [-1]).numpy().tolist(),
                 }
             )
+
+            d = BlackScholes(100.0, sigma, T_years - time * dt, K, r)
+            delta_step = d.calculate_delta_call()
+
+            delta.append({"time": time, "data": delta_step.numpy().item()})
 
             await asyncio.gather(*(send_dump(ws) for ws in clients))
         # todo: allow user to modify step time

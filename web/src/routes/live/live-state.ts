@@ -3,8 +3,14 @@ export interface GBMPath {
   data: number[];
 }
 
+export interface DeltaPath {
+  time: number;
+  data: number;
+}
+
 export interface LiveState {
   playing: false;
-  gbm_paths: GBMPath[];
   tau: number | null;
+  gbm_paths: GBMPath[];
+  delta: DeltaPath[];
 }

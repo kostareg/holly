@@ -11,20 +11,30 @@ import type { LiveState } from "@/routes/live/live-state";
 import Websocket from "@/routes/live/websocket";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-const config = {} satisfies ChartConfig;
+const gbm_config = {} satisfies ChartConfig;
+const delta_config = {} satisfies ChartConfig;
 
 function Live() {
   const [state, setState] = useState<LiveState>({
     playing: false,
-    gbm_paths: [],
     tau: null,
+    gbm_paths: [],
+    delta: [],
   });
 
   // reshape: [{ time, p0, p1, ... }]
-  const seriesCount = 15;
-  const chartData = state.gbm_paths.map(({ time, data }) => {
+  const gbm_count = 15;
+  const gbm_data = state.gbm_paths.map(({ time, data }) => {
     const row: Record<string, number | null> = { time };
-    for (let i = 0; i < seriesCount; i++) row[`p${i}`] = data?.at(i) || null;
+    for (let i = 0; i < gbm_count; i++) row[`p${i}`] = data?.at(i) || null;
+    return row;
+  });
+
+  const delta_count = 1;
+  const delta_data = state.delta.map(({ time, data }) => {
+    const row: Record<string, number | null> = { time };
+    // for (let i = 0; i < gbm_count; i++) row[`p${i}`] = data?.at(i) || null;
+    for (let i = 0; i < delta_count; i++) row[`p${i}`] = data || null;
     return row;
   });
 
@@ -63,9 +73,9 @@ function Live() {
             <CardDescription>Simulates geometric brownian motion (GBM) of underlying asset value, which is later used to calculate option price. Only first 15 paths are displayed.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={config}>
-              <LineChart accessibilityLayer data={chartData}>
-                {[...new Array(seriesCount).keys()].map((_, i) => (
+            <ChartContainer config={gbm_config}>
+              <LineChart accessibilityLayer data={gbm_data}>
+                {[...new Array(gbm_count).keys()].map((_, i) => (
                   <Line
                     dataKey={`p${i}`}
                     name={`Simulation ${i}`}
@@ -84,14 +94,43 @@ function Live() {
                 }}>
                   <Label value="Price ($)" position="insideLeft" angle={-90} offset={20} />
                 </YAxis>
-                <ChartTooltip content={<ChartTooltipContent labelKey="AAA" />} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+              </LineChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+        <Card >
+          <CardHeader>
+            <CardTitle>Black-Scholes Price</CardTitle>
+            <CardDescription>Describes the current fair price of an option of the underlying asset.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            todo
+          </CardContent>
+        </Card>
+        <Card className="size-full">
+          <CardHeader>
+            <CardTitle>Delta</CardTitle>
+            <CardDescription>Describes the sensitivity of the option's price given a $1 change in the underlying price.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={delta_config}>
+              <LineChart accessibilityLayer data={delta_data}>
+                <Line dataKey="p0" dot={false} isAnimationActive={false} />
+                <XAxis dataKey="time" interval={9}>
+                  <Label value="Time (steps)" position="insideBottom" offset={0} />
+                </XAxis>
+                <YAxis allowDecimals={false} domain={[0, 1]}>
+                  <Label value="Price ($)" position="insideLeft" angle={-90} offset={20} />
+                </YAxis>
+                <ChartTooltip content={<ChartTooltipContent />} />
               </LineChart>
             </ChartContainer>
           </CardContent>
         </Card>
         {[...Array(15).keys()].map((n) => (
           <Card key={n}>
-            <ChartContainer config={config} className="size-full">
+            <ChartContainer config={{}} className="size-full">
               <LineChart accessibilityLayer />
             </ChartContainer>
           </Card>
