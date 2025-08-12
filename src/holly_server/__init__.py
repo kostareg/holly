@@ -5,6 +5,10 @@ import copy
 import collections
 import random
 
+from holly_simulator import GeometricBrownianMotion
+
+motion = GeometricBrownianMotion(100, 0.05, 0.15, 1)
+
 playing = False
 examplesample = {
     "name": "XXX",
@@ -47,6 +51,9 @@ async def periodic_sender():
             modifiedsample["pv"] *= random.randint(1, 3)
             modifiedsample["amt"] *= random.randint(1, 3)
             somedata.append(modifiedsample)
+
+            motion.step()
+            modifiedsample["uv"] = motion.s
 
             await asyncio.gather(*(send_dump(ws) for ws in clients))
         # todo: allow user to modify step time
