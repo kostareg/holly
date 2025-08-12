@@ -35,7 +35,7 @@ function Live() {
   });
 
   // reshape: [{ time, p0, p1, ... }]
-  const seriesCount = 15;
+  const seriesCount = 100;
   const chartData = state.gbm_paths.map(({ time, data }) => {
     const row: Record<string, number> = { time };
     for (let i = 0; i < seriesCount; i++) row[`p${i}`] = data?.at(i) || 0;
@@ -48,7 +48,7 @@ function Live() {
       <div className="grid grid-cols-3 gap-4">
         <ChartContainer config={config} className="size-full">
           <LineChart accessibilityLayer data={chartData}>
-            {[...new Array(15).keys()].map((_, i) => (
+            {[...new Array(100).keys()].map((_, i) => (
               <Line
                 dataKey={`p${i}`}
                 stroke="var(--color-pv)"

@@ -26,7 +26,7 @@ clients = set()
 
 
 async def handler(websocket):
-    global playing
+    global playing, motion, time, examplesample
     clients.add(websocket)
     await send_dump(websocket)
     try:
@@ -36,6 +36,18 @@ async def handler(websocket):
                 playing = True
             elif data.get("action") == "pause":
                 playing = False
+            elif data.get("action") == "reset":
+                motion = VectorizedGeometricBrownianMotion(
+                    size, 100.0, 0.04, 0.18, 1 / 252
+                )
+                examplesample = collections.deque(
+                    [
+                        copy.deepcopy({"time": 0, "data": [100.0] * size})
+                        for _ in range(100)
+                    ],
+                    maxlen=100,
+                )
+                time = 0
             await send_dump(websocket)
     finally:
         clients.remove(websocket)
@@ -47,7 +59,6 @@ async def periodic_sender():
         if playing:
             # modify some_data, e.g. take a step here
             time += 1
-            data = []
             motion.step()
 
             examplesample.append(
