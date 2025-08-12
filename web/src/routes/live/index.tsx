@@ -1,6 +1,6 @@
 import { Moon, ShieldPlus, Sun } from "lucide-react";
 import { useState } from "react";
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
+import { CartesianGrid, Line, LineChart, ReferenceLine, XAxis, YAxis } from "recharts";
 import {
   type ChartConfig,
   ChartContainer,
@@ -57,6 +57,7 @@ function Live() {
                 isAnimationActive={false}
               />
             ))}
+            <ReferenceLine y={100} label="start" />
             <CartesianGrid />
             <XAxis dataKey="time" />
             <YAxis />

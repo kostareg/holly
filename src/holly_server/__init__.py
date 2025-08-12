@@ -3,17 +3,17 @@ import json
 import websockets
 import copy
 import collections
+import tensorflow as tf
 
-from holly_simulator import GeometricBrownianMotion
+from holly_simulator import VectorizedGeometricBrownianMotion
 
-motions = [
-    copy.deepcopy(GeometricBrownianMotion(100, 0.04, 0.18, 1 / 365)) for _ in range(100)
-]
+size = 100
+motion = VectorizedGeometricBrownianMotion(size, 100.0, 0.04, 0.18, 1 / 252)
 time = 0
 
 playing = False
 examplesample = collections.deque(
-    [copy.deepcopy({"time": 0, "data": [100] * 100}) for _ in range(100)], maxlen=100
+    [copy.deepcopy({"time": 0, "data": [100.0] * size}) for _ in range(100)], maxlen=100
 )
 
 
@@ -48,11 +48,14 @@ async def periodic_sender():
             # modify some_data, e.g. take a step here
             time += 1
             data = []
-            for motion in motions:
-                motion.step()
-                data.append(motion.s)
+            motion.step()
 
-            examplesample.append({"time": time, "data": data})
+            examplesample.append(
+                {
+                    "time": time,
+                    "data": tf.reshape(tf.abs(motion.s), [-1]).numpy().tolist(),
+                }
+            )
 
             await asyncio.gather(*(send_dump(ws) for ws in clients))
         # todo: allow user to modify step time
