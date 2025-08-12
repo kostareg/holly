@@ -1,11 +1,9 @@
 import { Moon, ShieldPlus, Sun } from "lucide-react";
 import { useState } from "react";
-import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import {
   type ChartConfig,
   ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
@@ -33,7 +31,15 @@ const config = {
 function Live() {
   const [state, setState] = useState<LiveState>({
     playing: false,
-    some_data: [],
+    gbm_paths: [],
+  });
+
+  // reshape: [{ time, p0, p1, ... }]
+  const seriesCount = 15;
+  const chartData = state.gbm_paths.map(({ time, data }) => {
+    const row: Record<string, number> = { time };
+    for (let i = 0; i < seriesCount; i++) row[`p${i}`] = data?.at(i) || 0;
+    return row;
   });
 
   return (
@@ -41,26 +47,20 @@ function Live() {
       <Websocket setState={setState} />
       <div className="grid grid-cols-3 gap-4">
         <ChartContainer config={config} className="size-full">
-          <LineChart accessibilityLayer data={state.some_data}>
-            <Line
-              dataKey="uv"
-              stroke="var(--color-uv)"
-              isAnimationActive={false}
-            />
-            <Line
-              dataKey="pv"
-              stroke="var(--color-pv)"
-              isAnimationActive={false}
-            />
-            <Line
-              dataKey="amt"
-              stroke="var(--color-amt)"
-              isAnimationActive={false}
-            />
+          <LineChart accessibilityLayer data={chartData}>
+            {[...new Array(15).keys()].map((_, i) => (
+              <Line
+                dataKey={`p${i}`}
+                stroke="var(--color-pv)"
+                name={`Simulation ${i}`}
+                dot={false}
+                isAnimationActive={false}
+              />
+            ))}
             <CartesianGrid />
-            <XAxis dataKey="name" />
+            <XAxis dataKey="time" />
+            <YAxis />
             <ChartTooltip content={<ChartTooltipContent />} />
-            <ChartLegend content={<ChartLegendContent />} />
           </LineChart>
         </ChartContainer>
         {[...Array(15).keys()].map((n) => (

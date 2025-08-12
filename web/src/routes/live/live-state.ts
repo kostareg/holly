@@ -1,11 +1,9 @@
-export interface SomeData {
-  name: string,
-  uv: number,
-  pv: number,
-  amt: number,
+export interface GBMPath {
+	time: number;
+	data: number[];
 }
 
 export interface LiveState {
-  playing: false;
-  some_data: SomeData[];
+	playing: false;
+	gbm_paths: GBMPath[];
 }

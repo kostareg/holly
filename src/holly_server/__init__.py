@@ -3,24 +3,22 @@ import json
 import websockets
 import copy
 import collections
-import random
 
 from holly_simulator import GeometricBrownianMotion
 
-motion = GeometricBrownianMotion(100, 0.05, 0.15, 1)
+motions = [
+    copy.deepcopy(GeometricBrownianMotion(100, 0.04, 0.18, 1 / 365)) for _ in range(100)
+]
+time = 0
 
 playing = False
-examplesample = {
-    "name": "XXX",
-    "uv": 100,
-    "pv": 200,
-    "amt": 400,
-}
-somedata = collections.deque([examplesample] * 100, maxlen=100)
+examplesample = collections.deque(
+    [copy.deepcopy({"time": 0, "data": [100] * 100}) for _ in range(100)], maxlen=100
+)
 
 
 async def send_dump(websocket):
-    msg = {"playing": playing, "some_data": list(somedata)}
+    msg = {"playing": playing, "gbm_paths": list(examplesample)}
     await websocket.send(json.dumps(msg))
 
 
@@ -30,6 +28,7 @@ clients = set()
 async def handler(websocket):
     global playing
     clients.add(websocket)
+    await send_dump(websocket)
     try:
         async for message in websocket:
             data = json.loads(message)
@@ -43,17 +42,17 @@ async def handler(websocket):
 
 
 async def periodic_sender():
+    global time
     while True:
         if playing:
             # modify some_data, e.g. take a step here
-            modifiedsample = copy.deepcopy(examplesample)
-            modifiedsample["uv"] *= random.randint(1, 3)
-            modifiedsample["pv"] *= random.randint(1, 3)
-            modifiedsample["amt"] *= random.randint(1, 3)
-            somedata.append(modifiedsample)
+            time += 1
+            data = []
+            for motion in motions:
+                motion.step()
+                data.append(motion.s)
 
-            motion.step()
-            modifiedsample["uv"] = motion.s
+            examplesample.append({"time": time, "data": data})
 
             await asyncio.gather(*(send_dump(ws) for ws in clients))
         # todo: allow user to modify step time
