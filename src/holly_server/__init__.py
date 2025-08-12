@@ -1,7 +1,6 @@
 import asyncio
 import json
 import websockets
-import copy
 import collections
 import tensorflow as tf
 
@@ -12,9 +11,7 @@ motion = VectorizedGeometricBrownianMotion(size, 100.0, 0.04, 0.18, 1 / 252)
 time = 0
 
 playing = False
-examplesample = collections.deque(
-    [copy.deepcopy({"time": 0, "data": [100.0] * size}) for _ in range(100)], maxlen=100
-)
+examplesample = collections.deque([{}] * 100, maxlen=100)
 
 
 async def send_dump(websocket):
@@ -41,10 +38,7 @@ async def handler(websocket):
                     size, 100.0, 0.04, 0.18, 1 / 252
                 )
                 examplesample = collections.deque(
-                    [
-                        copy.deepcopy({"time": 0, "data": [100.0] * size})
-                        for _ in range(100)
-                    ],
+                    [{}] * 100,
                     maxlen=100,
                 )
                 time = 0

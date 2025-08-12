@@ -1,6 +1,6 @@
 import { Moon, ShieldPlus, Sun } from "lucide-react";
 import { useState } from "react";
-import { CartesianGrid, Line, LineChart, ReferenceLine, XAxis, YAxis } from "recharts";
+import { CartesianGrid, Label, Line, LineChart, ReferenceLine, XAxis, YAxis } from "recharts";
 import {
   type ChartConfig,
   ChartContainer,
@@ -9,10 +9,11 @@ import {
 } from "@/components/ui/chart";
 import type { LiveState } from "@/routes/live/live-state";
 import Websocket from "@/routes/live/websocket";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const config = {
-  uv: {
-    label: "UV",
+  time: {
+    label: "Time",
     icon: Sun,
     color: "var(--color-yellow-500)",
   },
@@ -35,44 +36,58 @@ function Live() {
   });
 
   // reshape: [{ time, p0, p1, ... }]
-  const seriesCount = 100;
+  const seriesCount = 15;
   const chartData = state.gbm_paths.map(({ time, data }) => {
-    const row: Record<string, number> = { time };
-    for (let i = 0; i < seriesCount; i++) row[`p${i}`] = data?.at(i) || 0;
+    const row: Record<string, number | null> = { time };
+    for (let i = 0; i < seriesCount; i++) row[`p${i}`] = data?.at(i) || null;
     return row;
   });
 
   return (
     <>
       <Websocket setState={setState} />
-      <div className="grid grid-cols-3 gap-4">
-        <ChartContainer config={config} className="size-full">
-          <LineChart accessibilityLayer data={chartData}>
-            {[...new Array(100).keys()].map((_, i) => (
-              <Line
-                dataKey={`p${i}`}
-                stroke="var(--color-pv)"
-                name={`Simulation ${i}`}
-                dot={false}
-                isAnimationActive={false}
-              />
-            ))}
-            <ReferenceLine y={100} label="start" />
-            <CartesianGrid />
-            <XAxis dataKey="time" />
-            <YAxis />
-            <ChartTooltip content={<ChartTooltipContent />} />
-          </LineChart>
-        </ChartContainer>
+      <div className="grid grid-cols-3 gap-4 p-4">
+        <Card className="size-full">
+          <CardHeader>
+            <CardTitle>Geometric Brownian Motion Simulation</CardTitle>
+            <CardDescription>Simulates geometric brownian motion (GBM) of underlying asset value, which is later used to calculate option price. Only first 15 paths are displayed.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={config}>
+              <LineChart accessibilityLayer data={chartData}>
+                {[...new Array(seriesCount).keys()].map((_, i) => (
+                  <Line
+                    dataKey={`p${i}`}
+                    stroke="var(--color-pv)"
+                    name={`Simulation ${i}`}
+                    dot={false}
+                    isAnimationActive={false}
+                  />
+                ))}
+                <ReferenceLine y={100} />
+                <XAxis dataKey="time" interval={9}>
+                  <Label value="Time (steps)" position="insideBottom" offset={0} />
+                </XAxis>
+                <YAxis allowDecimals={false} domain={([min, max]) => {
+                  if (min === Infinity && max === -Infinity) return [100, 100];
+                  const maxDiff = Math.max(Math.abs(100 - min), Math.abs(100 - max));
+                  return [Math.floor(100 - maxDiff), Math.ceil(100 + maxDiff)];
+                }}>
+                  <Label value="Price ($)" position="insideLeft" angle={-90} offset={20} />
+                </YAxis>
+                <ChartTooltip content={<ChartTooltipContent labelKey="AAA" />} />
+              </LineChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
         {[...Array(15).keys()].map((n) => (
-          <ChartContainer key={n} config={config} className="size-full">
-            <LineChart accessibilityLayer>
-              <CartesianGrid />
-              <XAxis />
-            </LineChart>
-          </ChartContainer>
+          <Card key={n}>
+            <ChartContainer config={config} className="size-full">
+              <LineChart accessibilityLayer />
+            </ChartContainer>
+          </Card>
         ))}
-      </div>
+      </div >
     </>
   );
 }
