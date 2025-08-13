@@ -121,7 +121,7 @@ async def periodic_sender():
             # if it's the last time, expire the option
             if (time - 1) * dt == T:
                 for i, assets in enumerate(all_assets):
-                    assets.expire_option(initial_cost, gbm_paths[i])
+                    assets.expire_option(K, gbm_paths[i])
 
             average, idx = 0, 0
             while idx < 15:

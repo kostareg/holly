@@ -113,12 +113,12 @@ class Assets:
         self.cash -= total_cost
         self.underlying = total_amount
 
-    def expire_option(self, initial_underlying_cost, current_underlying_cost):
+    def expire_option(self, K, current_underlying_cost):
         """Option holder sells if the current cost is larger than the initial cost."""
-        if current_underlying_cost > initial_underlying_cost:
-            self.cash -= current_underlying_cost - initial_underlying_cost
+        self.cash -= max(current_underlying_cost - K, 0.0)
         self.option -= 1
         self.cash += self.underlying * current_underlying_cost
+        # todo: include liquidation cost
         self.underlying = 0
 
     def get_dump(self, time):
