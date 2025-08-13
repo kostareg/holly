@@ -6,20 +6,20 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import type { LiveState } from "@/routes/live/live-state";
+import type { LiveData, LiveState } from "@/routes/live/live-state";
 import Websocket from "@/routes/live/websocket";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const asset_config = {
-  underlying: {
+  "assets.underlying": {
     label: "Underlying",
     color: "var(--chart-1)",
   },
-  option: {
+  "assets.option": {
     label: "Option",
     color: "var(--chart-2)",
   },
-  cash: {
+  "assets.cash": {
     label: "Cash",
     color: "var(--chart-3)",
   },
@@ -28,34 +28,45 @@ const gbm_config = {} satisfies ChartConfig;
 const delta_config = {} satisfies ChartConfig;
 const price_config = {} satisfies ChartConfig;
 
+const defaultLiveData = {
+  time: 0,
+  gbm: [],
+  price: 0,
+  delta: 0,
+  assets: {
+    underlying: 0,
+    option: 0,
+    cash: 0,
+  },
+} satisfies LiveData;
+
 function Live() {
   const [state, setState] = useState<LiveState | null>(null);
 
   // reshape: [{ time, p0, p1, ... }]
   const gbm_count = 15;
-  const gbm_data = state?.gbm_paths.map(({ time, data }) => {
+  const gbm_data = state?.live_data.map((item) => {
+    const { time, gbm } = item ?? defaultLiveData;
     const row: Record<string, number | null> = { time };
-    for (let i = 0; i < gbm_count; i++) row[`p${i}`] = data?.at(i) || null;
-    return row;
-  });
-
-  const delta_count = 1;
-  const delta_data = state?.delta.map(({ time, data }) => {
-    const row: Record<string, number | null> = { time };
-    // for (let i = 0; i < gbm_count; i++) row[`p${i}`] = data?.at(i) || null;
-    for (let i = 0; i < delta_count; i++) row[`p${i}`] = data || null;
+    for (let i = 0; i < gbm_count; i++) row[`p${i}`] = gbm.at(i) || null;
     return row;
   });
 
   const price_count = 1;
-  const price_data = state?.price.map(({ time, data }) => {
+  const price_data = state?.live_data.map((item) => {
+    const { time, price } = item ?? defaultLiveData;
     const row: Record<string, number | null> = { time };
-    // for (let i = 0; i < gbm_count; i++) row[`p${i}`] = data?.at(i) || null;
-    for (let i = 0; i < price_count; i++) row[`p${i}`] = data || null;
+    for (let i = 0; i < price_count; i++) row[`p${i}`] = price || null;
     return row;
   });
 
-  console.debug(state);
+  const delta_count = 1;
+  const delta_data = state?.live_data.map((item) => {
+    const { time, delta } = item ?? defaultLiveData;
+    const row: Record<string, number | null> = { time };
+    for (let i = 0; i < delta_count; i++) row[`p${i}`] = delta || null;
+    return row;
+  });
 
   return (
     <>
@@ -80,8 +91,8 @@ function Live() {
             <div>
               Dynamic parameters:
               <ul className="list-inside list-disc">
-                <li>t (current time): {state?.gbm_paths.at(-1)?.time || "unknown"} steps</li>
-                <li>τ (time until maturity): {state?.tau.toFixed(2) || "unknown"} years</li>
+                <li>t (current time): {state?.live_data.at(-1)?.time || "unknown"} steps</li>
+                <li>τ (time until maturity): {state?.dynamic_parameters.tau.toFixed(2) || "unknown"} years</li>
               </ul>
             </div>
           </CardContent>
@@ -93,10 +104,10 @@ function Live() {
           </CardHeader>
           <CardContent>
             <ChartContainer config={asset_config}>
-              <LineChart accessibilityLayer data={state?.assets}>
-                <Line dataKey="underlying" dot={false} isAnimationActive={false} yAxisId="price" stroke="var(--color-underlying)" />
-                <Line dataKey="option" dot={false} isAnimationActive={false} yAxisId="options" stroke="var(--color-option)" />
-                <Line dataKey="cash" dot={false} isAnimationActive={false} yAxisId="price" stroke="var(--color-cash)" />
+              <LineChart accessibilityLayer data={state?.live_data}>
+                <Line dataKey="assets.underlying" dot={false} isAnimationActive={false} yAxisId="price" stroke="var(--chart-1)" />
+                <Line dataKey="assets.option" dot={false} isAnimationActive={false} yAxisId="options" stroke="var(--chart-2)" />
+                <Line dataKey="assets.cash" dot={false} isAnimationActive={false} yAxisId="price" stroke="var(--chart-3)" />
                 <XAxis domain={[0, 100]} dataKey="time" interval={9}>
                   <Label value="Time (steps)" position="insideBottom" offset={0} />
                 </XAxis>
@@ -109,7 +120,7 @@ function Live() {
                 <YAxis yAxisId="options" orientation="right" domain={[0, 2]}>
                   <Label angle={-90}>Options (#)</Label>
                 </YAxis>
-                <ChartTooltip content={<ChartTooltipContent />} />
+                <ChartTooltip content={<ChartTooltipContent labelKey="Assets" />} />
               </LineChart>
             </ChartContainer>
           </CardContent>

@@ -91,20 +91,21 @@ class Assets:
 
     def adjust_underlying_share(self, total_amount, unit_cost):
         """Own (total) amount of underlying means buying or selling until we get to total."""
-        change = self.total_amount - self.underlying
+        change = total_amount - self.underlying
         total_cost = change * unit_cost
-        self.cash += total_cost
-        self.underlying = self.total_amount
+        self.cash -= total_cost
+        self.underlying = total_amount
 
     def expire_option(self, initial_underlying_cost, current_underlying_cost):
         """Option holder sells if the current cost is larger than the initial cost."""
         if current_underlying_cost > initial_underlying_cost:
             self.cash -= current_underlying_cost - initial_underlying_cost
         self.option -= 1
+        self.cash += self.underlying * current_underlying_cost
+        self.underlying = 0
 
     def get_dump(self, time):
         return {
-            "time": time,
             "underlying": self.underlying,
             "option": self.option,
             "cash": self.cash,

@@ -6,34 +6,27 @@ export interface StaticParameters {
   T: number;
 }
 
+export interface DynamicParameters {
+  tau: number;
+}
+
 export interface Assets {
-  time: number;
   underlying: number;
   option: number;
   cash: number;
 }
 
-export interface GBMPath {
+export interface LiveData {
   time: number;
-  data: number[];
-}
-
-export interface DeltaPath {
-  time: number;
-  data: number;
-}
-
-export interface PricePath {
-  time: number;
-  data: number;
+  gbm: number[];
+  price: number;
+  delta: number;
+  assets: Assets;
 }
 
 export interface LiveState {
-  playing: false;
+  playing: boolean;
   static_parameters: StaticParameters;
-  assets: Assets[];
-  tau: number;
-  gbm_paths: GBMPath[];
-  delta: DeltaPath[];
-  price: PricePath[];
+  dynamic_parameters: DynamicParameters;
+  live_data: (LiveData | null)[];
 }
