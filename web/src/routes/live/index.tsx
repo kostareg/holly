@@ -20,7 +20,7 @@ const asset_config = {
     color: "var(--chart-2)",
   },
   "assets.cash": {
-    label: "Cash",
+    label: "Average cash",
     color: "var(--chart-3)",
   },
 } satisfies ChartConfig;
@@ -31,8 +31,8 @@ const price_config = {} satisfies ChartConfig;
 const defaultLiveData = {
   time: 0,
   gbm: [],
-  price: 0,
-  delta: 0,
+  price: [],
+  delta: [],
   assets: {
     underlying: 0,
     option: 0,
@@ -52,19 +52,19 @@ function Live() {
     return row;
   });
 
-  const price_count = 1;
+  const price_count = 15;
   const price_data = state?.live_data.map((item) => {
     const { time, price } = item ?? defaultLiveData;
     const row: Record<string, number | null> = { time };
-    for (let i = 0; i < price_count; i++) row[`p${i}`] = price || null;
+    for (let i = 0; i < price_count; i++) row[`p${i}`] = price.at(i) || null;
     return row;
   });
 
-  const delta_count = 1;
+  const delta_count = 15;
   const delta_data = state?.live_data.map((item) => {
     const { time, delta } = item ?? defaultLiveData;
     const row: Record<string, number | null> = { time };
-    for (let i = 0; i < delta_count; i++) row[`p${i}`] = delta || null;
+    for (let i = 0; i < delta_count; i++) row[`p${i}`] = delta.at(i) || null;
     return row;
   });
 
@@ -165,7 +165,11 @@ function Live() {
           <CardContent>
             <ChartContainer config={price_config}>
               <LineChart accessibilityLayer data={price_data}>
-                <Line dataKey="p0" dot={false} isAnimationActive={false} />
+                {[...new Array(price_count).keys()].map((_, i) => (
+                  <Line dataKey={`p${i}`} dot={false} isAnimationActive={false}
+                    name={`Simulation ${i}`}
+                  />
+                ))}
                 <XAxis domain={[0, 100]} dataKey="time" interval={9}>
                   <Label value="Time (steps)" position="insideBottom" offset={0} />
                 </XAxis>
@@ -188,7 +192,11 @@ function Live() {
           <CardContent>
             <ChartContainer config={delta_config}>
               <LineChart accessibilityLayer data={delta_data}>
-                <Line dataKey="p0" dot={false} isAnimationActive={false} />
+                {[...new Array(delta_count).keys()].map((_, i) => (
+                  <Line dataKey={`p${i}`} dot={false} isAnimationActive={false}
+                    name={`Simulation ${i}`}
+                  />
+                ))}
                 <XAxis domain={[0, 100]} dataKey="time" interval={9}>
                   <Label value="Time (steps)" position="insideBottom" offset={0} />
                 </XAxis>

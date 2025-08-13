@@ -2,6 +2,7 @@ import asyncio
 import json
 import websockets
 import collections
+import copy
 import tensorflow as tf
 
 from holly_simulator import VectorizedGeometricBrownianMotion, BlackScholes, Assets
@@ -21,10 +22,10 @@ playing = False
 motion = VectorizedGeometricBrownianMotion(size, initial_cost, mu, sigma, dt)
 live_data = collections.deque([None] * 100, maxlen=100)
 gbm_paths = []
-delta = 0
-price = 0
+delta = []
+price = []
 
-assets = Assets()
+all_assets = copy.deepcopy([Assets() for _ in range(100)])
 
 
 async def send_dump(websocket):
@@ -57,7 +58,7 @@ async def handler(websocket):
         gbm_paths, \
         delta, \
         price, \
-        assets, \
+        all_assets, \
         time_per_step, \
         dt, \
         mu, \
@@ -78,9 +79,9 @@ async def handler(websocket):
                 )
                 live_data = collections.deque([None] * 100, maxlen=100)
                 gbm_paths = []
-                delta = 0
-                price = 0
-                assets = Assets()
+                delta = []
+                price = []
+                all_assets = copy.deepcopy([Assets() for _ in range(100)])
                 time = 0
             else:
                 print(f"""unknown incoming message {data.get("action")}""")
@@ -90,36 +91,55 @@ async def handler(websocket):
 
 
 async def periodic_sender():
-    global time, delta, price
+    global time, delta, price, gbm_paths
     while True:
         if playing and (T - time * dt >= 0):
             # modify some_data, e.g. take a step here
             time += 1
             motion.step()
 
-            gbm_paths = tf.reshape(tf.abs(motion.s), [-1]).numpy().tolist()
+            gbm_paths = tf.reshape(tf.abs(motion.s), [-1])
 
-            d = BlackScholes(100.0, sigma, T - time * dt, K, r)
-            delta = d.calculate_delta_call().numpy().item()
-            price = d.calculate_price_call().numpy().item()
+            d = BlackScholes(gbm_paths, sigma, T - time * dt, K, r)
+            delta = d.calculate_delta_call()
+            price = d.calculate_price_call()
+
+            gbm_paths = gbm_paths.numpy().tolist()
+            price = price.numpy().tolist()
+            delta = delta.numpy().tolist()
 
             # if it's the first time, sell a call option
             if time == 1:
-                assets.sell_price_call(price)
+                for i, assets in enumerate(all_assets):
+                    assets.sell_price_call(price[i])
 
-            assets.adjust_underlying_share(delta, gbm_paths[0])
+            print(f"going in: {all_assets[0].cash} option is valued at {price[0]}")
+
+            for i, assets in enumerate(all_assets):
+                assets.adjust_underlying_share(delta[i], gbm_paths[i])
 
             # if it's the last time, expire the option
             if (time - 1) * dt == T:
-                assets.expire_option(initial_cost, gbm_paths[0])
+                for i, assets in enumerate(all_assets):
+                    assets.expire_option(initial_cost, gbm_paths[i])
+
+            average, idx = 0, 0
+            while idx < 15:
+                average += all_assets[idx].cash
+                idx += 1
+            average /= 15
 
             live_data.append(
                 {
                     "time": time,
                     "gbm": list(gbm_paths),
-                    "price": price,
-                    "delta": delta,
-                    "assets": assets.get_dump(time),
+                    "price": list(price),
+                    "delta": list(delta),
+                    "assets": {
+                        "underlying": all_assets[0].underlying,
+                        "option": all_assets[0].option,
+                        "cash": average,
+                    },
                 }
             )
 

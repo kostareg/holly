@@ -19,8 +19,8 @@ export interface Assets {
 export interface LiveData {
   time: number;
   gbm: number[];
-  price: number;
-  delta: number;
+  price: number[];
+  delta: number[];
   assets: Assets;
 }
 

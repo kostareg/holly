@@ -6,7 +6,7 @@ class VectorizedGeometricBrownianMotion(tf.Module):
     """
     Geometric Brownian Motion calculator with vectorization for multiple paths.
 
-    Calculates one single value of a Geometric Brownian Motion simulation based on the equation:
+    Calculates a Geometric Brownian Motion simulation based on the equation:
 
     s_t = s_(t-1) * e ^ ( ( mu - sigma^2 / 2 ) * dt + sigma * sqrt(dt) * Z )
 
@@ -41,10 +41,27 @@ class VectorizedGeometricBrownianMotion(tf.Module):
         )
 
 
-# todo: vectorize
 class BlackScholes(tf.Module):
     """
-    We set tau to the maximum between tau and 1e-12 to avoid division by zero.
+    Black-Scholes model with vectorization for multiple paths.
+
+    Calculates greeks with a Black-Scholes model based on the equations:
+
+    d_1 = (ln (s_t / K) + (r + sigma^2 / 2) * tau) / (sigma * sqrt(tau))
+    d_2 = d_1 - sigma * sqrt(tau)
+    delta = N(d_1)
+    price = s_t * delta - K * e ^ (-r * tau) * N(d_2)
+
+    Where:
+        * s is the price
+        * t is the current time
+        * sigma is the annualized volatility standard deviation
+        * r is the risk-free interest rate
+        * tau is the time to option maturity
+        * K is the strike price
+        * N is the cumulative distribution function of the standard normal distribution
+
+    Note: we set tau to the maximum between tau and 1e-12 to avoid division by zero.
     """
 
     def __init__(self, s_t, sigma, tau, K, r):
