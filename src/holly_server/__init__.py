@@ -4,7 +4,7 @@ import websockets
 import collections
 import tensorflow as tf
 
-from holly_simulator import VectorizedGeometricBrownianMotion, BlackScholes
+from holly_simulator import VectorizedGeometricBrownianMotion, BlackScholes, Assets
 
 time_per_step = 0
 size = 100
@@ -19,8 +19,10 @@ T = 2
 
 playing = False
 gbm_paths = collections.deque([{}] * 100, maxlen=100)
-delta = collections.deque([] * 100, maxlen=100)
-price = collections.deque([] * 100, maxlen=100)
+delta = collections.deque([{}] * 100, maxlen=100)
+price = collections.deque([{}] * 100, maxlen=100)
+
+assets = collections.deque([{}] * 100, maxlen=100)
 
 
 async def send_dump(websocket):
@@ -33,6 +35,7 @@ async def send_dump(websocket):
             "sigma": sigma,
             "T": T,
         },
+        "assets": list(assets),
         "tau": T - time * dt,
         "gbm_paths": list(gbm_paths),
         "delta": list(delta),
@@ -52,6 +55,7 @@ async def handler(websocket):
         gbm_paths, \
         delta, \
         price, \
+        assets, \
         time_per_step, \
         dt, \
         mu, \
@@ -72,8 +76,9 @@ async def handler(websocket):
                     [{}] * 100,
                     maxlen=100,
                 )
-                delta = collections.deque([] * 100, maxlen=100)
-                price = collections.deque([] * 100, maxlen=100)
+                delta = collections.deque([{}] * 100, maxlen=100)
+                price = collections.deque([{}] * 100, maxlen=100)
+                assets = collections.deque([{}] * 100, maxlen=100)
                 time = 0
             else:
                 print(f"""unknown incoming message {data.get("action")}""")
@@ -103,6 +108,12 @@ async def periodic_sender():
 
             delta.append({"time": time, "data": delta_step.numpy().item()})
             price.append({"time": time, "data": price_step.numpy().item()})
+
+            asset = Assets()
+            asset.sell_price_call(1)
+            if assets and isinstance(assets[-1], Assets):
+                asset = assets[-1]
+            assets.append(asset.get_dump(time))
 
             await asyncio.gather(*(send_dump(ws) for ws in clients))
         await asyncio.sleep(time_per_step)
