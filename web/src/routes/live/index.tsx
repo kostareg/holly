@@ -1,6 +1,5 @@
-import { Moon, ShieldPlus, Sun } from "lucide-react";
-import { useState } from "react";
-import { CartesianGrid, Label, Line, LineChart, ReferenceLine, XAxis, YAxis } from "recharts";
+import React, { useEffect, useState } from "react";
+import { Label, Line, LineChart, ReferenceLine, XAxis, YAxis } from "recharts";
 import {
   type ChartConfig,
   ChartContainer,
@@ -18,6 +17,7 @@ function Live() {
   const [state, setState] = useState<LiveState>({
     playing: false,
     tau: null,
+    static_parameters: null,
     gbm_paths: [],
     delta: [],
   });
@@ -50,12 +50,12 @@ function Live() {
           <CardContent className="grid grid-cols-2">
             <div>
               Static parameters:
-              <ul className="list-inside list-disc">
-                <li>Time per step: 0.05 seconds</li>
-                <li>dt (step size): 1/252 years</li>
-                <li>μ (drift rate, annualized): 4%</li>
-                <li>σ (stddev volatility, annualized): 18%</li>
-                <li>T (initial time until maturity): 2 years</li>
+              <ul className="list-disc list-inside">
+                <li>Time per step: {state.static_parameters?.time_per_step || "unknown"} seconds</li>
+                <li>dt (step size): {state.static_parameters?.dt ? "1/" + Math.round(1 / state.static_parameters.dt) : "unknown"} years</li>
+                <li>μ (drift rate, annualized): {state.static_parameters?.mu ? (state.static_parameters.mu * 100) : "unknown "}%</li>
+                <li>σ (stddev volatility, annualized): {state.static_parameters ? (state.static_parameters.sigma * 100) : "unknown "}%</li>
+                <li>T (initial time until maturity): {state.static_parameters?.T || "unknown"} years</li>
               </ul>
             </div>
             <div>

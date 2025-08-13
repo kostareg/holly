@@ -6,6 +6,7 @@ import tensorflow as tf
 
 from holly_simulator import VectorizedGeometricBrownianMotion, BlackScholes
 
+time_per_step = 0.05
 size = 100
 dt = 1 / 252
 mu = 0.04
@@ -14,7 +15,7 @@ K = 100
 r = 0.035
 motion = VectorizedGeometricBrownianMotion(size, 100.0, mu, sigma, dt)
 time = 0
-T_years = 2
+T = 2
 
 playing = False
 gbm_paths = collections.deque([{}] * 100, maxlen=100)
@@ -24,7 +25,14 @@ delta = collections.deque([] * 100, maxlen=100)
 async def send_dump(websocket):
     msg = {
         "playing": playing,
-        "tau": T_years - time * dt,
+        "static_parameters": {
+            "time_per_step": time_per_step,
+            "dt": dt,
+            "mu": mu,
+            "sigma": sigma,
+            "T": T,
+        },
+        "tau": T - time * dt,
         "gbm_paths": list(gbm_paths),
         "delta": list(delta),
     }
@@ -35,7 +43,7 @@ clients = set()
 
 
 async def handler(websocket):
-    global playing, motion, time, gbm_paths, delta
+    global playing, motion, time, gbm_paths, delta, time_per_step, dt, mu, sigma, T
     clients.add(websocket)
     await send_dump(websocket)
     try:
@@ -46,13 +54,15 @@ async def handler(websocket):
             elif data.get("action") == "pause":
                 playing = False
             elif data.get("action") == "reset":
-                motion = VectorizedGeometricBrownianMotion(size, 100.0, 0.04, 0.18, dt)
+                motion = VectorizedGeometricBrownianMotion(size, 100.0, mu, sigma, dt)
                 gbm_paths = collections.deque(
                     [{}] * 100,
                     maxlen=100,
                 )
                 delta = collections.deque([] * 100, maxlen=100)
                 time = 0
+            else:
+                print(f"""unknown incoming message {data.get("action")}""")
             await send_dump(websocket)
     finally:
         clients.remove(websocket)
@@ -73,14 +83,13 @@ async def periodic_sender():
                 }
             )
 
-            d = BlackScholes(100.0, sigma, T_years - time * dt, K, r)
+            d = BlackScholes(100.0, sigma, T - time * dt, K, r)
             delta_step = d.calculate_delta_call()
 
             delta.append({"time": time, "data": delta_step.numpy().item()})
 
             await asyncio.gather(*(send_dump(ws) for ws in clients))
-        # todo: allow user to modify step time
-        await asyncio.sleep(0.05)
+        await asyncio.sleep(time_per_step)
 
 
 async def main1():
