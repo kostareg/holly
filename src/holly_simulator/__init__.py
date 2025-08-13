@@ -41,7 +41,6 @@ class VectorizedGeometricBrownianMotion(tf.Module):
         )
 
 
-# todo: add calculate_price_call
 # todo: vectorize
 class BlackScholes(tf.Module):
     """
@@ -55,10 +54,26 @@ class BlackScholes(tf.Module):
         self.K = K
         self.r = r
 
+    @staticmethod
+    @tf.function
+    def N(x):
+        return 0.5 * (1.0 + tf.math.erf(x / tf.sqrt(2.0)))
+
     @tf.function
     def calculate_delta_call(self):
         print("Calculating bs delta call...")
-        d_1 = tf.math.log(
-            (self.s_t / self.K) + (self.r + 0.5 * self.sigma**2) * self.tau
+        d_1 = (
+            tf.math.log(self.s_t / self.K) + (self.r + 0.5 * self.sigma**2) * self.tau
         ) / (self.sigma * tf.sqrt(self.tau))
-        return 0.5 * (1.0 + tf.math.erf(d_1 / tf.sqrt(2.0)))
+        return self.N(d_1)
+
+    @tf.function
+    def calculate_price_call(self):
+        print("Calculating bs price call...")
+        d_1 = (
+            tf.math.log(self.s_t / self.K) + (self.r + 0.5 * self.sigma**2) * self.tau
+        ) / (self.sigma * tf.sqrt(self.tau))
+        d_2 = d_1 - self.sigma * tf.sqrt(self.tau)
+        return self.s_t * self.calculate_delta_call() - self.K * tf.math.exp(
+            -self.r * self.tau
+        ) * self.N(d_2)

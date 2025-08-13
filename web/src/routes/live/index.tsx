@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 const gbm_config = {} satisfies ChartConfig;
 const delta_config = {} satisfies ChartConfig;
+const price_config = {} satisfies ChartConfig;
 
 function Live() {
   const [state, setState] = useState<LiveState>({
@@ -20,6 +21,7 @@ function Live() {
     static_parameters: null,
     gbm_paths: [],
     delta: [],
+    price: [],
   });
 
   // reshape: [{ time, p0, p1, ... }]
@@ -35,6 +37,14 @@ function Live() {
     const row: Record<string, number | null> = { time };
     // for (let i = 0; i < gbm_count; i++) row[`p${i}`] = data?.at(i) || null;
     for (let i = 0; i < delta_count; i++) row[`p${i}`] = data || null;
+    return row;
+  });
+
+  const price_count = 1;
+  const price_data = state.price.map(({ time, data }) => {
+    const row: Record<string, number | null> = { time };
+    // for (let i = 0; i < gbm_count; i++) row[`p${i}`] = data?.at(i) || null;
+    for (let i = 0; i < price_count; i++) row[`p${i}`] = data || null;
     return row;
   });
 
@@ -105,7 +115,21 @@ function Live() {
             <CardDescription>Describes the current fair price of an option of the underlying asset.</CardDescription>
           </CardHeader>
           <CardContent>
-            todo
+            <ChartContainer config={price_config}>
+              <LineChart accessibilityLayer data={price_data}>
+                <Line dataKey="p0" dot={false} isAnimationActive={false} />
+                <XAxis dataKey="time" interval={9}>
+                  <Label value="Time (steps)" position="insideBottom" offset={0} />
+                </XAxis>
+                <YAxis allowDecimals={false} domain={([min, max]) => {
+                  if (min === Infinity && max === -Infinity) return [0, 19];
+                  return [0, Math.ceil(max + 5)];
+                }}>
+                  <Label value="Price ($)" position="insideLeft" angle={-90} offset={20} />
+                </YAxis>
+                <ChartTooltip content={<ChartTooltipContent />} />
+              </LineChart>
+            </ChartContainer>
           </CardContent>
         </Card>
         <Card className="size-full">
@@ -121,7 +145,7 @@ function Live() {
                   <Label value="Time (steps)" position="insideBottom" offset={0} />
                 </XAxis>
                 <YAxis allowDecimals={false} domain={[0, 1]}>
-                  <Label value="Price ($)" position="insideLeft" angle={-90} offset={20} />
+                  <Label value="Delta" position="insideLeft" angle={-90} offset={20} />
                 </YAxis>
                 <ChartTooltip content={<ChartTooltipContent />} />
               </LineChart>
