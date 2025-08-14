@@ -132,7 +132,7 @@ function Live() {
 							Final parameters:
 							<ul className="list-inside list-disc">
 								<li>
-									VaR 5%: $
+									Value at Risk 5%: $
 									{state?.final_parameters?.var5.toFixed(2) ||
 										(state?.playing ? (
 											<LoaderCircle
@@ -144,7 +144,7 @@ function Live() {
 										))}
 								</li>
 								<li>
-									CVaR 5%: $
+									Conditional Value at Risk 5%: $
 									{state?.final_parameters?.cvar5.toFixed(2) ||
 										(state?.playing ? (
 											<LoaderCircle
