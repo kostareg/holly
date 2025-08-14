@@ -7,7 +7,7 @@ import tensorflow as tf
 
 from holly_simulator import VectorizedGeometricBrownianMotion, BlackScholes, Assets
 
-time_per_step = 0
+time_per_step = 0.01
 size = 100
 dt = 1 / 252
 mu = 0.04
