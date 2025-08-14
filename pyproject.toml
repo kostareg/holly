@@ -12,7 +12,7 @@ dependencies = [
 
 [project.scripts]
 holly = "holly:hello"
-holly_server = "holly_server:main"
+server = "holly_server:main"
 
 [build-system]
 requires = ["hatchling"]

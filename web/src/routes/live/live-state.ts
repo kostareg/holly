@@ -10,6 +10,11 @@ export interface DynamicParameters {
 	tau: number;
 }
 
+export interface FinalParameters {
+	var5: number;
+	cvar5: number;
+}
+
 export interface Assets {
 	underlying: number;
 	option: number;
@@ -28,5 +33,6 @@ export interface LiveState {
 	playing: boolean;
 	static_parameters: StaticParameters;
 	dynamic_parameters: DynamicParameters;
+	final_parameters: FinalParameters | null;
 	live_data: (LiveData | null)[];
 }

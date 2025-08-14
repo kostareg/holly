@@ -127,3 +127,17 @@ class Assets:
             "option": self.option,
             "cash": self.cash,
         }
+
+    @staticmethod
+    def get_var5(all_assets):
+        n = len(all_assets)
+        sorted_cash = sorted(r.cash for r in all_assets)
+        var5_index = int(0.05 * n)
+        return sorted_cash[var5_index]
+
+    @staticmethod
+    def get_cvar5(all_assets):
+        n = len(all_assets)
+        sorted_cash = sorted(r.cash for r in all_assets)
+        var5_index = int(0.05 * n)
+        return sum(sorted_cash[:var5_index+1]) / (var5_index+1)

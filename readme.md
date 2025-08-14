@@ -1,9 +1,9 @@
 ## Notes
 
 ```
-uv run holly_server # run the server
-uv run pytest       # run tests
-ruff check          # run lints
+uv run server # run the server
+uv run pytest # run tests
+ruff check    # run lints
 ```
 
 `.git/hooks/pre-commit`:

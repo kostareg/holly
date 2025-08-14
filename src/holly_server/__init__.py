@@ -29,6 +29,7 @@ all_assets = copy.deepcopy([Assets() for _ in range(100)])
 
 
 async def send_dump(websocket):
+    tau = T - time * dt
     msg = {
         "playing": playing,
         "static_parameters": {
@@ -39,7 +40,11 @@ async def send_dump(websocket):
             "T": T,
         },
         "dynamic_parameters": {
-            "tau": T - time * dt,
+            "tau": tau,
+        },
+        "final_parameters": None if tau > 0 else {
+            "var5": Assets.get_var5(all_assets),
+            "cvar5": Assets.get_cvar5(all_assets),
         },
         "live_data": list(live_data),
     }

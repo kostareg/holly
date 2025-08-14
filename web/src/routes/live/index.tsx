@@ -1,3 +1,4 @@
+import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { Label, Line, LineChart, ReferenceLine, XAxis, YAxis } from "recharts";
 import {
@@ -85,7 +86,7 @@ function Live() {
 							General details about the simulation configuration.
 						</CardDescription>
 					</CardHeader>
-					<CardContent className="grid grid-cols-2">
+					<CardContent className="grid grid-cols-2 gap-4">
 						<div>
 							Static parameters:
 							<ul className="list-disc list-inside">
@@ -124,6 +125,35 @@ function Live() {
 								<li>
 									τ (time until maturity):{" "}
 									{state?.dynamic_parameters.tau.toFixed(2) || "unknown"} years
+								</li>
+							</ul>
+						</div>
+						<div>
+							Final parameters:
+							<ul className="list-inside list-disc">
+								<li>
+									VaR 5%: $
+									{state?.final_parameters?.var5.toFixed(2) ||
+										(state?.playing ? (
+											<LoaderCircle
+												size={20}
+												className="text-gray-500 animate-spin inline"
+											/>
+										) : (
+											"unknown"
+										))}
+								</li>
+								<li>
+									CVaR 5%: $
+									{state?.final_parameters?.cvar5.toFixed(2) ||
+										(state?.playing ? (
+											<LoaderCircle
+												size={20}
+												className="text-gray-500 animate-spin inline"
+											/>
+										) : (
+											"unknown"
+										))}
 								</li>
 							</ul>
 						</div>
