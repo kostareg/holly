@@ -9,7 +9,7 @@ ruff check          # run lints
 `.git/hooks/pre-commit`:
 
 ```
-( cd web && biome check )
+( cd web && biome check && bunx tsc -b )
 ruff check
 uv run pytest
 ```
