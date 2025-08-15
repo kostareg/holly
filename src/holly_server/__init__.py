@@ -27,6 +27,14 @@ price = []
 
 all_assets = copy.deepcopy([Assets() for _ in range(100)])
 
+def get_average_pnl():
+    average, idx = 0, 0
+    while idx < 15:
+        average += all_assets[idx].cash
+        idx += 1
+    average /= 15
+    return average
+
 
 async def send_dump(websocket):
     tau = T - time * dt
@@ -43,6 +51,7 @@ async def send_dump(websocket):
             "tau": tau,
         },
         "final_parameters": None if tau > 0 else {
+            "pnl": get_average_pnl(),
             "var5": Assets.get_var5(all_assets),
             "cvar5": Assets.get_cvar5(all_assets),
         },
@@ -128,12 +137,6 @@ async def periodic_sender():
                 for i, assets in enumerate(all_assets):
                     assets.expire_option(K, gbm_paths[i])
 
-            average, idx = 0, 0
-            while idx < 15:
-                average += all_assets[idx].cash
-                idx += 1
-            average /= 15
-
             live_data.append(
                 {
                     "time": time,
@@ -143,7 +146,7 @@ async def periodic_sender():
                     "assets": {
                         "underlying": all_assets[0].underlying,
                         "option": all_assets[0].option,
-                        "cash": average,
+                        "cash": get_average_pnl(),
                     },
                 }
             )

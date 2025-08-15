@@ -75,6 +75,8 @@ function Live() {
 		return row;
 	});
 
+	console.log(state?.final_parameters?.pnl);
+
 	return (
 		<>
 			<Websocket setState={setState} />
@@ -131,6 +133,18 @@ function Live() {
 						<div>
 							Final parameters:
 							<ul className="list-inside list-disc">
+								<li>
+									Mean Profit & Loss: $
+									{state?.final_parameters?.pnl.toFixed(2) ||
+										(state?.playing ? (
+											<LoaderCircle
+												size={20}
+												className="text-gray-500 animate-spin inline"
+											/>
+										) : (
+											"unknown"
+										))}
+								</li>
 								<li>
 									Value at Risk 5%: $
 									{state?.final_parameters?.var5.toFixed(2) ||

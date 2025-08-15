@@ -11,6 +11,7 @@ export interface DynamicParameters {
 }
 
 export interface FinalParameters {
+	pnl: number;
 	var5: number;
 	cvar5: number;
 }
