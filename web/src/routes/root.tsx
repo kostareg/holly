@@ -1,4 +1,4 @@
-import { CirclePlay, Home } from "lucide-react";
+import { CirclePlay, Dumbbell, Home } from "lucide-react";
 import { Link, Outlet } from "react-router-dom";
 
 import {
@@ -23,6 +23,11 @@ const items = [
 		title: "Live View",
 		url: "/live",
 		icon: CirclePlay,
+	},
+	{
+		title: "Training View",
+		url: "/training",
+		icon: Dumbbell,
 	},
 ];
 

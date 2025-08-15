@@ -5,6 +5,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "@/main.css";
 import Live from "@/routes/live";
 import Root from "@/routes/root";
+import Training from "@/routes/training";
 
 const router = createBrowserRouter([
 	{
@@ -14,6 +15,10 @@ const router = createBrowserRouter([
 			{
 				path: "live",
 				element: <Live />,
+			},
+			{
+				path: "training",
+				element: <Training />,
 			},
 		],
 	},

@@ -1,6 +1,7 @@
 import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { Label, Line, LineChart, ReferenceLine, XAxis, YAxis } from "recharts";
+import Websocket from "@/components/common/websocket";
 import {
 	Card,
 	CardContent,
@@ -15,7 +16,6 @@ import {
 	ChartTooltipContent,
 } from "@/components/ui/chart";
 import type { LiveData, LiveState } from "@/routes/live/live-state";
-import Websocket from "@/routes/live/websocket";
 
 const asset_config = {
 	"assets.underlying": {
@@ -74,8 +74,6 @@ function Live() {
 		for (let i = 0; i < delta_count; i++) row[`p${i}`] = delta.at(i) || null;
 		return row;
 	});
-
-	console.log(state?.final_parameters?.pnl);
 
 	return (
 		<>
@@ -373,13 +371,6 @@ function Live() {
 						</ChartContainer>
 					</CardContent>
 				</Card>
-				{[...Array(15).keys()].map((n) => (
-					<Card key={n}>
-						<ChartContainer config={{}} className="size-full">
-							<LineChart accessibilityLayer />
-						</ChartContainer>
-					</Card>
-				))}
 			</div>
 		</>
 	);

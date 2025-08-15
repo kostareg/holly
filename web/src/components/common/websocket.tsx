@@ -7,9 +7,8 @@ import {
 	RefreshCcw,
 	RotateCcw,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import type { LiveState } from "@/routes/live/live-state";
 
 enum SocketState {
 	Connected,
@@ -17,10 +16,10 @@ enum SocketState {
 	Closed,
 }
 
-export const Websocket = ({
+export const Websocket = <State extends { playing: boolean }>({
 	setState,
 }: {
-	setState: (state: LiveState) => void;
+	setState: Dispatch<SetStateAction<State | null>>;
 }) => {
 	// todo: allow users to specify a custom address
 	const [conn, setConn] = useState<WebSocket | null>(null);
@@ -37,7 +36,7 @@ export const Websocket = ({
 
 		ws.addEventListener("open", () => setSocketState(SocketState.Connected));
 		ws.addEventListener("message", (m) => {
-			const data = JSON.parse(m.data) as LiveState;
+			const data = JSON.parse(m.data) as State;
 			setState(data);
 			setPlaying(data.playing);
 		});
